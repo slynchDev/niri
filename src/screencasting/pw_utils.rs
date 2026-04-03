@@ -318,16 +318,12 @@ fn make_video_params_for_initial_negotiation_with_extra_buffer(
 
         trace!("offering: {modifiers:?}");
 
-        if modifiers.len() == 0 {
-            vec![
-                (make_video_params(&video_formats, &vec![], size, refresh, false), Vec::new()),
-            ]
-        } else {
-            vec![
-                (make_video_params(&video_formats, &modifiers, size, refresh, false), Vec::new()),
-                (make_video_params(&video_formats, &vec![], size, refresh, false), Vec::new()),
-            ]
-        }
+        // Only offer SHM (no modifiers) — never offer DMA-BUF.
+        // Zoom caches DMA-BUF modifiers it can't render (NVIDIA tiled buffers),
+        // causing black screen on subsequent screen shares.
+        vec![
+            (make_video_params(&video_formats, &vec![], size, refresh, false), Vec::new()),
+        ]
     };
     let pod_objects_with_extra_buffer = if alpha {
         [f(true), f(false)].concat()
